@@ -1,0 +1,175 @@
+GAS LISTING /tmp/ccFEUNZ2.s 			page 1
+
+
+   1              		.file	"main.c"
+   2              		.option nopic
+   3              		.option norelax
+   4              		.text
+   5              	.Ltext0:
+   6              		.cfi_sections	.debug_frame
+   7              		.align	2
+   8              		.globl	main
+  10              	main:
+  11              	.LFB0:
+  12              		.file 1 "src/main.c"
+   1:src/main.c    **** #include "../lib/console.h"
+   2:src/main.c    **** #include "../lib/hw.h"
+   3:src/main.c    **** #include  "../h/printing.hpp"
+   4:src/main.c    **** #include "../h/syscall_c.h"
+   5:src/main.c    **** 
+   6:src/main.c    **** void main() {
+  13              		.loc 1 6 13
+  14              		.cfi_startproc
+  15 0000 130101FE 		addi	sp,sp,-32
+  16              		.cfi_def_cfa_offset 32
+  17 0004 233C1100 		sd	ra,24(sp)
+  18 0008 23388100 		sd	s0,16(sp)
+  19 000c 23349100 		sd	s1,8(sp)
+  20              		.cfi_offset 1, -8
+  21              		.cfi_offset 8, -16
+  22              		.cfi_offset 9, -24
+  23 0010 13040102 		addi	s0,sp,32
+  24              		.cfi_def_cfa 8, 0
+   7:src/main.c    ****     void* p1 = mem_alloc(10);
+  25              		.loc 1 7 5
+  26              		.loc 1 7 16 is_stmt 0
+  27 0014 1305A000 		li	a0,10
+  28 0018 97000000 		call	mem_alloc
+  28      E7800000 
+  29              	.LVL0:
+  30 0020 93040500 		mv	s1,a0
+  31              	.LVL1:
+   8:src/main.c    ****     printInteger((uint64)p1);
+  32              		.loc 1 8 5 is_stmt 1
+  33 0024 97000000 		call	printInteger
+  33      E7800000 
+  34              	.LVL2:
+   9:src/main.c    ****     __putc('1');
+  35              		.loc 1 9 5
+  36 002c 13051003 		li	a0,49
+  37 0030 97000000 		call	__putc
+  37      E7800000 
+  38              	.LVL3:
+  10:src/main.c    ****     uint64 status = mem_free(p1);
+  39              		.loc 1 10 5
+  40              		.loc 1 10 21 is_stmt 0
+  41 0038 13850400 		mv	a0,s1
+  42 003c 97000000 		call	mem_free
+  42      E7800000 
+  43              	.LVL4:
+  11:src/main.c    ****     printInteger(status);
+GAS LISTING /tmp/ccFEUNZ2.s 			page 2
+
+
+  44              		.loc 1 11 5 is_stmt 1
+  45 0044 97000000 		call	printInteger
+  45      E7800000 
+  46              	.LVL5:
+  12:src/main.c    ****     __putc('2');
+  47              		.loc 1 12 5
+  48 004c 13052003 		li	a0,50
+  49 0050 97000000 		call	__putc
+  49      E7800000 
+  50              	.LVL6:
+  13:src/main.c    **** }...
+  51              		.loc 1 13 1 is_stmt 0
+  52 0058 83308101 		ld	ra,24(sp)
+  53              		.cfi_restore 1
+  54 005c 03340101 		ld	s0,16(sp)
+  55              		.cfi_restore 8
+  56              		.cfi_def_cfa 2, 32
+  57 0060 83348100 		ld	s1,8(sp)
+  58              		.cfi_restore 9
+  59              	.LVL7:
+  60 0064 13010102 		addi	sp,sp,32
+  61              		.cfi_def_cfa_offset 0
+  62 0068 67800000 		jr	ra
+  63              		.cfi_endproc
+  64              	.LFE0:
+  66              	.Letext0:
+  67              		.file 2 "src/../lib/hw.h"
+  68              		.file 3 "src/../h/syscall_c.h"
+  69              		.file 4 "src/../h/printing.hpp"
+  70              		.file 5 "src/../lib/console.h"
+GAS LISTING /tmp/ccFEUNZ2.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+     /tmp/ccFEUNZ2.s:10     .text:0000000000000000 main
+     /tmp/ccFEUNZ2.s:14     .text:0000000000000000 .L0 
+     /tmp/ccFEUNZ2.s:15     .text:0000000000000000 .L0 
+     /tmp/ccFEUNZ2.s:16     .text:0000000000000004 .L0 
+     /tmp/ccFEUNZ2.s:20     .text:0000000000000010 .L0 
+     /tmp/ccFEUNZ2.s:21     .text:0000000000000010 .L0 
+     /tmp/ccFEUNZ2.s:22     .text:0000000000000010 .L0 
+     /tmp/ccFEUNZ2.s:24     .text:0000000000000014 .L0 
+     /tmp/ccFEUNZ2.s:26     .text:0000000000000014 .L0 
+     /tmp/ccFEUNZ2.s:27     .text:0000000000000014 .L0 
+     /tmp/ccFEUNZ2.s:33     .text:0000000000000024 .L0 
+     /tmp/ccFEUNZ2.s:36     .text:000000000000002c .L0 
+     /tmp/ccFEUNZ2.s:40     .text:0000000000000038 .L0 
+     /tmp/ccFEUNZ2.s:41     .text:0000000000000038 .L0 
+     /tmp/ccFEUNZ2.s:45     .text:0000000000000044 .L0 
+     /tmp/ccFEUNZ2.s:48     .text:000000000000004c .L0 
+     /tmp/ccFEUNZ2.s:52     .text:0000000000000058 .L0 
+     /tmp/ccFEUNZ2.s:53     .text:000000000000005c .L0 
+     /tmp/ccFEUNZ2.s:55     .text:0000000000000060 .L0 
+     /tmp/ccFEUNZ2.s:56     .text:0000000000000060 .L0 
+     /tmp/ccFEUNZ2.s:58     .text:0000000000000064 .L0 
+     /tmp/ccFEUNZ2.s:61     .text:0000000000000068 .L0 
+     /tmp/ccFEUNZ2.s:63     .text:000000000000006c .L0 
+     /tmp/ccFEUNZ2.s:71     .text:000000000000006c .L0 
+                     .debug_frame:0000000000000000 .L0 
+     /tmp/ccFEUNZ2.s:302    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+     /tmp/ccFEUNZ2.s:627    .debug_str:0000000000000160 .LASF22
+     /tmp/ccFEUNZ2.s:591    .debug_str:000000000000005a .LASF23
+     /tmp/ccFEUNZ2.s:621    .debug_str:000000000000012c .LASF24
+     /tmp/ccFEUNZ2.s:5      .text:0000000000000000 .Ltext0
+     /tmp/ccFEUNZ2.s:66     .text:000000000000006c .Letext0
+     /tmp/ccFEUNZ2.s:575    .debug_line:0000000000000000 .Ldebug_line0
+     /tmp/ccFEUNZ2.s:577    .debug_str:0000000000000000 .LASF0
+     /tmp/ccFEUNZ2.s:615    .debug_str:00000000000000fa .LASF1
+     /tmp/ccFEUNZ2.s:601    .debug_str:0000000000000094 .LASF2
+     /tmp/ccFEUNZ2.s:595    .debug_str:0000000000000078 .LASF4
+     /tmp/ccFEUNZ2.s:589    .debug_str:0000000000000048 .LASF3
+     /tmp/ccFEUNZ2.s:583    .debug_str:000000000000002a .LASF5
+     /tmp/ccFEUNZ2.s:593    .debug_str:0000000000000065 .LASF6
+     /tmp/ccFEUNZ2.s:613    .debug_str:00000000000000e7 .LASF7
+     /tmp/ccFEUNZ2.s:623    .debug_str:0000000000000146 .LASF8
+     /tmp/ccFEUNZ2.s:579    .debug_str:000000000000000d .LASF9
+     /tmp/ccFEUNZ2.s:581    .debug_str:000000000000001b .LASF10
+     /tmp/ccFEUNZ2.s:619    .debug_str:000000000000011d .LASF11
+     /tmp/ccFEUNZ2.s:585    .debug_str:0000000000000031 .LASF12
+     /tmp/ccFEUNZ2.s:617    .debug_str:000000000000010d .LASF13
+     /tmp/ccFEUNZ2.s:599    .debug_str:0000000000000088 .LASF14
+     /tmp/ccFEUNZ2.s:609    .debug_str:00000000000000c4 .LASF15
+     /tmp/ccFEUNZ2.s:607    .debug_str:00000000000000ae .LASF16
+     /tmp/ccFEUNZ2.s:603    .debug_str:00000000000000a2 .LASF25
+     /tmp/ccFEUNZ2.s:11     .text:0000000000000000 .LFB0
+     /tmp/ccFEUNZ2.s:64     .text:000000000000006c .LFE0
+     /tmp/ccFEUNZ2.s:548    .debug_loc:0000000000000000 .LLST0
+     /tmp/ccFEUNZ2.s:587    .debug_str:0000000000000041 .LASF17
+     /tmp/ccFEUNZ2.s:555    .debug_loc:0000000000000023 .LLST1
+GAS LISTING /tmp/ccFEUNZ2.s 			page 4
+
+
+     /tmp/ccFEUNZ2.s:29     .text:0000000000000020 .LVL0
+     /tmp/ccFEUNZ2.s:34     .text:000000000000002c .LVL2
+     /tmp/ccFEUNZ2.s:38     .text:0000000000000038 .LVL3
+     /tmp/ccFEUNZ2.s:43     .text:0000000000000044 .LVL4
+     /tmp/ccFEUNZ2.s:46     .text:000000000000004c .LVL5
+     /tmp/ccFEUNZ2.s:50     .text:0000000000000058 .LVL6
+     /tmp/ccFEUNZ2.s:625    .debug_str:0000000000000156 .LASF18
+     /tmp/ccFEUNZ2.s:611    .debug_str:00000000000000da .LASF19
+     /tmp/ccFEUNZ2.s:605    .debug_str:00000000000000a7 .LASF20
+     /tmp/ccFEUNZ2.s:597    .debug_str:000000000000007f .LASF21
+     /tmp/ccFEUNZ2.s:31     .text:0000000000000024 .LVL1
+     /tmp/ccFEUNZ2.s:59     .text:0000000000000064 .LVL7
+     /tmp/ccFEUNZ2.s:72     .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+mem_alloc
+printInteger
+__putc
+mem_free
