@@ -30,18 +30,22 @@ private:
 
         void mergeBlocks(MemDescr* prev, MemDescr* curr)
         {
-                if (prev != nullptr && (size_t)prev + prev->size == (size_t)curr)
+                if (prev != nullptr && curr != nullptr && (size_t)prev + prev->size == (size_t)curr)
                 {
                         prev->size += curr->size;
                         prev->next = curr->next;
                 }
         }
-        static constexpr  size_t align_down(size_t size, size_t align)
+
+        static constexpr size_t align_down(size_t size, size_t align)
         {
-                return size * align / align;
+                // FIX: was "size * align / align" which is a no-op (always
+                // returns size unchanged). Correct rounding-down is
+                // size / align * align.
+                return size / align * align;
         }
 
-        static constexpr  size_t align_up(size_t size, size_t align)
+        static constexpr size_t align_up(size_t size, size_t align)
         {
                 return (size + align - 1)/align * align;
         }
