@@ -28,6 +28,15 @@ private:
 
         MemDescr* head;
 
+        // The constructor aligns HEAP_START_ADDR/HEAP_END_ADDR before using
+        // them to build the initial free block. free()'s bounds check must
+        // compare against these SAME aligned values, not the raw
+        // HEAP_START_ADDR/HEAP_END_ADDR -- otherwise any block carved out of
+        // the gap between the raw and aligned start address (e.g. the very
+        // first block descriptor) will incorrectly fail the bounds check.
+        size_t heapStart;
+        size_t heapEnd;
+
         void mergeBlocks(MemDescr* prev, MemDescr* curr)
         {
                 if (prev != nullptr && curr != nullptr && (size_t)prev + prev->size == (size_t)curr)
