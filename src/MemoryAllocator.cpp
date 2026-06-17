@@ -12,11 +12,11 @@ MemoryAllocator& MemoryAllocator::getInstance()
 
 MemoryAllocator::MemoryAllocator()
 {
-    size_t memStart = align_down((size_t)HEAP_START_ADDR, MEM_BLOCK_SIZE);
-    size_t memEnd = align_up((size_t)HEAP_END_ADDR, MEM_BLOCK_SIZE);
+    heapStart = align_down((size_t)HEAP_START_ADDR, MEM_BLOCK_SIZE);
+    heapEnd = align_up((size_t)HEAP_END_ADDR, MEM_BLOCK_SIZE);
 
-    MemDescr* mem = (MemDescr*)memStart;
-    mem->size = memEnd - memStart;
+    MemDescr* mem = (MemDescr*)heapStart;
+    mem->size = heapEnd - heapStart;
     mem->next = nullptr;
 
     head = mem;
@@ -75,7 +75,12 @@ int MemoryAllocator::free(void* ptr)
 
     ptr = (void*)((size_t)ptr - MEM_BLOCK_SIZE); //-1 block = descriptor
 
-    if (ptr < HEAP_START_ADDR || ptr >= HEAP_END_ADDR)
+    // FIX: compare against the ALIGNED bounds (same ones used to build the
+    // initial free list in the constructor), not the raw HEAP_START_ADDR.
+    // The first block's descriptor can legitimately sit in the gap between
+    // the raw, unaligned HEAP_START_ADDR and the aligned heapStart -- using
+    // the raw value here incorrectly rejected valid frees from that block.
+    if ((size_t)ptr < heapStart || (size_t)ptr >= heapEnd)
         return -1;
 
     // Find the correct insertion point: prev is the last free block
