@@ -14,14 +14,20 @@ void Riscv::popSppSpie()
     __asm__ volatile("sret");
 }
 
-// AUTOMATSKA INICIJALIZACIJA TRAPOVA:
-// Ova struktura i njen globalni objekat osiguravaju da se adresa handlera
-// upiše u stvec kontrolni registar automatski pri podizanju sistema, pre main-a.
-struct TrapInitializer {
-    TrapInitializer() {
-        Riscv::w_stvec((uint64)&supervisorTrap);
-    }
-};
-
-// Globalna instanca koja okida konstruktor automatski
-static TrapInitializer auto_trap_init;
+// Postavlja stvec na našu sopstvenu trap rutinu (supervisorTrap iz trap.S).
+//
+// VAŽNO: ovo se NE poziva preko globalnog konstruktora, jer redosled
+// izvršavanja globalnih konstruktora u odnosu na platformski start()/
+// trapinithart() (koji takođe piše u stvec, postavljajući ga na kernelvec)
+// nije garantovan. U ovom projektu se pokazalo da trapinithart() pobeđuje
+// i prepiše našu vrednost pre nego što main() uopšte počne da se izvršava.
+//
+// Umesto toga, initTraps() se poziva LENJO (lazy), tačno jednom, iz
+// SysCalls::invoke() pre prvog ecall-a. Pošto svaki syscall mora doći iz
+// main()-a (ili koda koji main() pozove), a main() se poziva tek nakon
+// što se start() u potpunosti završi, ovaj redosled je zagarantovan i
+// korisnik ne mora ručno da poziva nikakvu init funkciju.
+void Riscv::initTraps()
+{
+    Riscv::w_stvec((uint64)&supervisorTrap);
+}

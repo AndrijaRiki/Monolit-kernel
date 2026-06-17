@@ -70,33 +70,44 @@ void* MemoryAllocator::alloc(size_t size)
 
 int MemoryAllocator::free(void* ptr)
 {
+    if (ptr == nullptr)
+        return -1;
+
     ptr = (void*)((size_t)ptr - MEM_BLOCK_SIZE); //-1 block = descriptor
 
     if (ptr < HEAP_START_ADDR || ptr >= HEAP_END_ADDR)
         return -1;
 
+    // Find the correct insertion point: prev is the last free block
+    // before ptr, curr is the first free block after (or equal to) ptr.
     MemDescr* prev = nullptr;
     MemDescr* curr = head;
 
-    while (curr != nullptr)
+    while (curr != nullptr && curr < ptr)
     {
-        if (curr == ptr)
-            return -1;
-        if (curr > ptr)
-            break;
-
-        prev =curr;
+        prev = curr;
         curr = curr->next;
     }
 
+    // If curr == ptr, this block is already on the free list -> double free.
+    if (curr == ptr)
+        return -1;
+
     MemDescr* desc = (MemDescr*)ptr;
+    desc->next = curr;
+
+    // FIX: original code did "head = prev->next" here, which overwrote the
+    // list head every time prev wasn't null, corrupting the free list.
+    // We need to link desc INTO the list at the right spot instead.
     if (prev == nullptr)
         head = desc;
     else
-        head = prev->next;
+        prev->next = desc;
 
-    desc->next = curr;
-
+    // Merge desc forward into curr first (desc's address is still correct,
+    // only curr might get absorbed into it), then merge prev forward into
+    // desc/curr's combined block. Order matters: merge the later pair first
+    // so the earlier merge sees the final, fully-coalesced size.
     mergeBlocks(desc, curr);
     mergeBlocks(prev, desc);
 
