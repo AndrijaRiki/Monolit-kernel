@@ -1,0 +1,95 @@
+#include "../lib/console.h"
+#include "../lib/hw.h"
+#include "../h/printing.hpp"
+#include "../h/syscall_c.h"
+
+static void printLabel(const char* label)
+{
+    printString(label);
+}
+
+static void printLine(const char* label, uint64 value)
+{
+    printString(label);
+    printInteger(value);
+    __putc('\n');
+}
+
+void main()
+{
+    printLine("HEAP_START_ADDR=", (uint64)HEAP_START_ADDR);
+    printLine("HEAP_END_ADDR=",   (uint64)HEAP_END_ADDR);
+    __putc('\n');
+
+    // ---- Test 1: basic alloc + free (sanity check) ----
+    printLabel("[Test 1] basic alloc/free\n");
+    void* p1 = mem_alloc(10);
+    printLine("  p1=", (uint64)p1);
+    uint64 status1 = mem_free(p1);
+    printLine("  free(p1)=", status1);
+    __putc('\n');
+
+    // ---- Test 2: multiple simultaneous allocations ----
+    printLabel("[Test 2] multiple simultaneous allocations\n");
+    void* a = mem_alloc(4);
+    void* b = mem_alloc(8);
+    void* c = mem_alloc(2);
+    printLine("  a=", (uint64)a);
+    printLine("  b=", (uint64)b);
+    printLine("  c=", (uint64)c);
+    __putc('\n');
+
+    // ---- Test 3: free in an order that forces coalescing (b, then a, then c) ----
+    printLabel("[Test 3] free b, a, c (exercise mergeBlocks)\n");
+    printLine("  free(b)=", mem_free(b));
+    printLine("  free(a)=", mem_free(a));
+    printLine("  free(c)=", mem_free(c));
+    __putc('\n');
+
+    // ---- Test 4: after freeing+merging everything above, a big alloc
+    //      should still succeed, proving the merged space is usable ----
+    printLabel("[Test 4] large alloc after merge\n");
+    void* big = mem_alloc(50);
+    printLine("  big=", (uint64)big);
+    printLine("  free(big)=", mem_free(big));
+    __putc('\n');
+
+    // ---- Test 5: double free should be rejected ----
+    printLabel("[Test 5] double free detection\n");
+    void* d = mem_alloc(5);
+    printLine("  d=", (uint64)d);
+    printLine("  free(d) first time=",  mem_free(d));
+    printLine("  free(d) second time=", mem_free(d));
+    __putc('\n');
+
+    // ---- Test 6: free(nullptr) should be rejected, not crash ----
+    printLabel("[Test 6] free(nullptr)\n");
+    printLine("  free(nullptr)=", mem_free((void*)0));
+    __putc('\n');
+
+    // ---- Test 7: allocate more than the heap can hold -> should fail (nullptr) ----
+    printLabel("[Test 7] over-large allocation (expect failure)\n");
+    // mem_alloc()'s "size" parameter is in BYTES (it converts to blocks
+    // internally), so request more bytes than the entire heap could ever
+    // hold -- not a pre-converted block count.
+    size_t hugeBytes = (size_t)HEAP_END_ADDR - (size_t)HEAP_START_ADDR + MEM_BLOCK_SIZE;
+    void* huge = mem_alloc(hugeBytes);
+    printLine("  huge=", (uint64)huge);
+    if (huge == (void*)0)
+        printLabel("  OK: alloc correctly returned null on exhaustion\n");
+    else
+        printLabel("  WARNING: expected null, got a non-null pointer\n");
+    __putc('\n');
+
+    printLabel("All tests finished.\n");
+}
+
+
+/*void main()
+{
+    __putc('K');
+    __putc('r');
+    __putc('a');
+    __putc('j');
+    __putc('\n');
+}*/
