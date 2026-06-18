@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 
-void printString(char* str);
+void printString(const char* str);
 void printInteger(uint64 num);
 
 #ifdef __cplusplus
