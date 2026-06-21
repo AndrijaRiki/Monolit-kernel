@@ -13,6 +13,7 @@ public:
         static MemoryAllocator& getInstance();
         void* alloc(size_t size);
         int free(void* ptr);
+        uint64 SIZE_MAX = (uint64)HEAP_END_ADDR - (uint64)HEAP_START_ADDR;
 
 private:
         MemoryAllocator();

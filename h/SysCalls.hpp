@@ -11,8 +11,8 @@
 class SysCalls
 {
 public:
-    template <typename T>
-    static inline T invoke(uint64 id)
+    /*template <typename T, typename ...>
+    static inline T invoke(uint64 id, ...)
     {
         ensureTrapsInstalled();
 
@@ -30,7 +30,7 @@ public:
 
     //with 1 argument
     template <typename T, typename Arg1>
-    static inline T invoke(uint64 id, Arg1 arg1)
+    static inline T invoke(uint64 id, Arg1 arg1, ...)
     {
         ensureTrapsInstalled();
 
@@ -46,6 +46,54 @@ public:
         );
 
         return ret;
+    }*/
+    // 1. Standard version for calls that return a value (e.g., int, void*, char)
+    template <typename T, typename... Args>
+    static inline T invoke(uint64 id, Args... args)
+    {
+        ensureTrapsInstalled();
+
+        // Initializes unused elements to 0 automatically
+        uint64 regs[5] = { id, (uint64)args... };
+
+        register uint64 r_a0 asm("a0") = regs[0];
+        register uint64 r_a1 asm("a1") = regs[1];
+        register uint64 r_a2 asm("a2") = regs[2];
+        register uint64 r_a3 asm("a3") = regs[3];
+        register uint64 r_a4 asm("a4") = regs[4];
+
+        register T ret asm("a0");
+
+        asm volatile(
+            "ecall"
+            : "=r" (ret)
+            : "r" (r_a0), "r" (r_a1), "r" (r_a2), "r" (r_a3), "r" (r_a4)
+            : "memory"
+        );
+
+        return ret;
+    }
+
+    // 2. Specialized version for void calls (e.g., thread_dispatch)
+    template <typename... Args>
+    static inline void invoke(uint64 id, Args... args)
+    {
+        ensureTrapsInstalled();
+
+        uint64 regs[5] = { id, (uint64)args... };
+
+        register uint64 r_a0 asm("a0") = regs[0];
+        register uint64 r_a1 asm("a1") = regs[1];
+        register uint64 r_a2 asm("a2") = regs[2];
+        register uint64 r_a3 asm("a3") = regs[3];
+        register uint64 r_a4 asm("a4") = regs[4];
+
+        asm volatile(
+            "ecall"
+            :
+            : "r" (r_a0), "r" (r_a1), "r" (r_a2), "r" (r_a3), "r" (r_a4)
+            : "memory"
+        );
     }
 
 private:
@@ -59,7 +107,7 @@ private:
     static inline void ensureTrapsInstalled()
     {
         static bool installed = []() {
-            Riscv::initTraps();
+            Riscv::initInternalTraps();
             return true;
         }();
         (void)installed;

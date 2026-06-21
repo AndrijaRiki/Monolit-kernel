@@ -13,7 +13,7 @@ extern "C" {
 
 
 void printString(const char* str);
-void printInteger(uint64 num);
+void printInteger(uint64 num, int base);
 
 #ifdef __cplusplus
 }

@@ -89,7 +89,7 @@ public:
     // that code unconditionally overwrites stvec with its own kernelvec right
     // before main() is entered. Called lazily/automatically from SysCalls::invoke
     // on first use, so user code never has to call this directly.
-    static void initTraps();
+    static void initInternalTraps();
 };
 
 inline uint64 Riscv::r_scause()
