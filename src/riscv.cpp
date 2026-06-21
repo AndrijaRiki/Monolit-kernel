@@ -5,16 +5,16 @@
 #include "../h/riscv.hpp"
 
 // Deklaracija asemblerske rutine iz trap.S
-extern "C" void supervisorTrap();
+extern "C" void internalTrap();
 
 void Riscv::popSppSpie()
 {
     __asm__ volatile("csrc sstatus, %0" :: "r"(Riscv::SSTATUS_SPP));
-    __asm__ volatile("csrw sepc, ra");
+    //__asm__ volatile("csrw sepc, ra");
     __asm__ volatile("sret");
 }
 
-// Postavlja stvec na našu sopstvenu trap rutinu (supervisorTrap iz trap.S).
+// Postavlja stvec na našu sopstvenu trap rutinu (internalTrap iz trap.S).
 //
 // VAŽNO: ovo se NE poziva preko globalnog konstruktora, jer redosled
 // izvršavanja globalnih konstruktora u odnosu na platformski start()/
@@ -22,12 +22,12 @@ void Riscv::popSppSpie()
 // nije garantovan. U ovom projektu se pokazalo da trapinithart() pobeđuje
 // i prepiše našu vrednost pre nego što main() uopšte počne da se izvršava.
 //
-// Umesto toga, initTraps() se poziva LENJO (lazy), tačno jednom, iz
+// Umesto toga, initInternalsTraps() se poziva LENJO (lazy), tačno jednom, iz
 // SysCalls::invoke() pre prvog ecall-a. Pošto svaki syscall mora doći iz
 // main()-a (ili koda koji main() pozove), a main() se poziva tek nakon
 // što se start() u potpunosti završi, ovaj redosled je zagarantovan i
 // korisnik ne mora ručno da poziva nikakvu init funkciju.
-void Riscv::initTraps()
+void Riscv::initInternalTraps()
 {
-    Riscv::w_stvec((uint64)&supervisorTrap);
+    Riscv::w_stvec((uint64)&internalTrap);
 }

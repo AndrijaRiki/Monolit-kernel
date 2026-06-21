@@ -15,9 +15,9 @@ void printString(const char *str)
     }
 }
 
-void printInteger(uint64 num)
+void printInteger(uint64 num, int base)
 {
-    int base = 16;
+    //int base = 16;
     static char digits[] = "0123456789abcdef";
     char buf[16];
     int i;

@@ -24,9 +24,10 @@ MemoryAllocator::MemoryAllocator()
 
 void* MemoryAllocator::alloc(size_t size)
 {
+    if (size > ((uint64)SIZE_MAX / MEM_BLOCK_SIZE - 1))
+        return nullptr;
     // convert to bytes, and add one more block for the descriptor
-    size = (size + 1)*MEM_BLOCK_SIZE;
-
+    size = (size + 1) * MEM_BLOCK_SIZE;
 
     MemDescr* prev = nullptr;
     MemDescr* curr = head;
