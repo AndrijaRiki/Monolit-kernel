@@ -1,0 +1,166 @@
+#include "../h/syscall_c.h"
+#include "../h/printing.hpp"
+#include "../h/riscv.hpp"
+
+// Pomoćne promenljive za proveru sekvence izvršavanja
+volatile int test8_step = 0;
+sem_t mutex = nullptr;
+sem_t sem_block = nullptr;
+
+// --- TEST 7 & 8: Nit koja se gasi sama i koristi semafore ---
+void worker_thread_1(void* arg) {
+    printString("[Test 7 & 8] Worker 1 started.\n");
+
+    // Koristimo mutex da bezbedno inkrementiramo korak
+    sem_wait(mutex);
+    test8_step++; // step = 1
+    printString("[Test 8] Worker 1 acquired mutex, step updated.\n");
+    sem_signal(mutex);
+
+    // Signaliziramo glavnoj niti da smo uradili svoj deo i blokiramo se na drugom semaforu
+    printString("[Test 8] Worker 1 waiting on sem_block...\n");
+    sem_wait(sem_block);
+
+    printString("[Test 7] Worker 1 explicitly exiting via thread_exit...\n");
+    thread_exit();
+
+    // Kod ispod ne sme nikada da se izvrši
+    printString("ERROR: Worker 1 executed code after thread_exit!\n");
+}
+
+void worker_thread_2(void* arg) {
+    printString("[Test 7 & 8] Worker 2 started.\n");
+
+    sem_wait(mutex);
+    if (test8_step == 1) {
+        printString("[Test 8] Worker 2 sees step == 1. Success!\n");
+    } else {
+        printString("ERROR: Worker 2 sequence failure!\n");
+    }
+    sem_signal(mutex);
+
+    // Worker 2 se završava eksplicitnim gašenjem
+    thread_exit();
+}
+
+// --- TEST 10: Nit za proveru uspavljivanja (time_sleep) ---
+void sleeper_thread(void* arg) {
+    printString("[Test 10] Sleeper thread started. Going to sleep for 20 periods...\n");
+
+    // Pozivamo time_sleep
+    time_sleep(20);
+
+    printString("[Test 10] Sleeper thread woke up after sleep time! OK\n");
+    thread_exit();
+}
+
+// --- TEST 9: Dve niti sa intenzivnim izračunavanjem (Time-sharing / Preemption) ---
+volatile uint64 counterA = 0;
+volatile uint64 counterB = 0;
+volatile bool stop_sharing = false;
+
+void busy_thread_A(void* arg) {
+    printString("[Test 9] Busy Thread A started.\n");
+    while (!stop_sharing) {
+        counterA++;
+    }
+    printString("[Test 9] Busy Thread A finished.\n");
+    thread_exit();
+}
+
+void busy_thread_B(void* arg) {
+    printString("[Test 9] Busy Thread B started.\n");
+    while (!stop_sharing) {
+        counterB++;
+    }
+    printString("[Test 9] Busy Thread B finished.\n");
+    thread_exit();
+}
+
+
+// --- GLAVNA FUNKCIJA KOJA POKREĆE SVE TESTOVE ---
+void main() {
+    printString("--- STARTING TESTS 7 TO 10 ---\n");
+
+    // ==========================================
+    // 1. INICIJALIZACIJA SEMAFORA (Test 8)
+    // ==========================================
+    if (sem_open(&mutex, 1) < 0 || sem_open(&sem_block, 0) < 0) {
+        printString("ERROR: Failed to open semaphores!\n");
+        return;
+    }
+    printString("sie=");
+    printInteger(Riscv::r_sie(), 16);
+    printString(" sstatus=");
+    printInteger(Riscv::r_sstatus(), 16);
+    printString("\n");
+
+    // ==========================================
+    // 2. KREIRANJE NITI ZA TEST 7 i 8 (Gašenje i Semafori)
+    // ==========================================
+    thread_t t1, t2;
+    thread_create(&t1, worker_thread_1, nullptr);
+    thread_create(&t2, worker_thread_2, nullptr);
+
+    // Puštamo t1 i t2 da se izvrše do tačke blokade
+    thread_dispatch();
+    thread_dispatch();
+
+    // Odblokiravamo Worker 1
+    printString("[Test 8] Main thread signaling sem_block to wake Worker 1...\n");
+    sem_signal(sem_block);
+
+    // Ustupamo procesor da Worker 1 odradi thread_exit
+    thread_dispatch();
+
+    // Gasimo semafore
+    sem_close(mutex);
+    sem_close(sem_block);
+    printString("[Test 7 & 8] Completed successfully.\n\n");
+
+    // ==========================================
+    // 3. PROVERA TAJMERA I ASINHRONOG PREKIDA (Test 9)
+    // ==========================================
+    printString("[Test 9] Testing Time-sharing preemption. Starting 2 busy loops...\n");
+    thread_t ta, tb;
+    thread_create(&ta, busy_thread_A, nullptr);
+    thread_create(&tb, busy_thread_B, nullptr);
+
+    // Puštamo ih da rade neko vreme kroz "aktivno čekanje" u glavnoj niti
+    for (volatile int i = 0; i < 50000000; i++) {
+        // Trošimo vreme u glavnoj niti da omogućimo hardverskom tajmeru da prekida
+    }
+
+    stop_sharing = true; // Signaliziramo nitima da završe rad
+    printString("[Test 9] Stopping busy threads. Checking counters...\n");
+
+    // Ustupamo procesor da se niti A i B ugase
+    thread_dispatch();
+    thread_dispatch();
+
+    printString("Counter A: ");
+    printInteger(counterA, 10);
+    printString("\nCounter B: ");
+    printInteger(counterB, 10);
+    printString("\n");
+
+    if (counterA > 0 && counterB > 0) {
+        printString("[Test 9] Both threads progressed via preemption! OK\n\n");
+    } else {
+        printString("ERROR: Preemption failed! One or both counters are 0.\n\n");
+    }
+
+    // ==========================================
+    // 4. PROVERA USPAVLJIVANJA (Test 10)
+    // ==========================================
+    printString("[Test 10] Starting sleeper thread...\n");
+    thread_t ts;
+    thread_create(&ts, sleeper_thread, nullptr);
+
+    // NOVO/ISPRAVLJENO: Umesto nepouzdane for petlje koja proleti pre nego što tajmer ikada kucne,
+    // koristimo moć sinhronizacije. Glavna nit se blokira i čeka završetak niti spavača.
+    printString("[Test 10] Main thread waiting for sleeper to finish via thread_join...\n");
+    thread_join(ts);
+
+    printString("--- ALL TESTS COMPLETED ---\n");
+}
