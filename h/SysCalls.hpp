@@ -108,6 +108,7 @@ private:
     {
         static bool installed = []() {
             Riscv::initInternalTraps();
+            Riscv::ms_sie(Riscv::SIE_STIE); // unmasks supervisor timer interrupt
             return true;
         }();
         (void)installed;

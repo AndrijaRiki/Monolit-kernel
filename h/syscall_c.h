@@ -17,6 +17,13 @@ enum calls
     THREAD_DISPATCH = 0x13,
     THREAD_JOIN = 0x15,
     THREAD_GETID = 0x16,
+    SEM_OPEN = 0x21,
+    SEM_CLOSE = 0x22,
+    SEM_WAIT = 0x23,
+    SEM_SIGNAL = 0x24,
+    SEM_WAIT_N = 0x25,
+    SEM_SIGNAL_N = 0x26,
+    TIME_SLEEP = 0x31
 };
 
 /*#ifdef __cplusplus
@@ -37,6 +44,18 @@ void thread_dispatch();
 void thread_join(thread_t handle);
 int thread_getID();
 
+class _sem;
+typedef _sem* sem_t;
+
+int sem_open(sem_t* handle, unsigned init);
+int sem_close(sem_t handle);
+int sem_wait(sem_t id);
+int sem_signal(sem_t id);
+int sem_wait_n(sem_t id, unsigned n);
+int sem_signal_n(sem_t id, unsigned n);
+
+typedef unsigned long time_t;
+int time_sleep(time_t);
 /*#ifdef __cplusplus
 }
 #endif*/

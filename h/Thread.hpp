@@ -12,7 +12,7 @@ class _thread
 {
 public:
     static _thread* running;
-    static size_t time;
+    static time_t time;
 
     _thread();
 
@@ -44,6 +44,8 @@ public:
     bool finished = false;
     bool sleeping = false;
     bool interrupted = false;
+
+    unsigned sem_needed = 0;
 
     thread_body_t start_routine;
     void* arg;
