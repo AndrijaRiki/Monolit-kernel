@@ -8,6 +8,11 @@
 #include  "../h/Scheduler.hpp"
 #include "../h/printing.hpp"
 
+namespace
+{
+    _thread* zombie = nullptr;
+}
+
 _thread::_thread()
 {
     ready = true;
@@ -39,7 +44,7 @@ static _thread* createMainThread()
 }
 
 _thread* _thread::running = createMainThread();
-size_t _thread::time = 0;
+time_t _thread::time = 0;
 size_t _thread::nextId = 0;
 
 _thread::_thread(void (*start_routine)(void*), void* arg, void* stack):
@@ -48,7 +53,15 @@ _thread::_thread(void (*start_routine)(void*), void* arg, void* stack):
     arg(arg),
     context({((uint64)stack + DEFAULT_STACK_SIZE) & ~0xFULL, (uint64)threadWrapper})
 {
-    Scheduler::getInstance().addReady(this); //newly created thread has to be put in ready list
+    ready = true;
+    finished = false;
+    sleeping = false;
+    interrupted = false;
+    next = nullptr;
+    waiting = nullptr;
+    sleepTime = 0;
+    id = ++nextId; // FIX: Use the unique ID counter
+    Scheduler::getInstance().addReady(this);
 }
 
 _thread::~_thread()
@@ -59,36 +72,120 @@ _thread::~_thread()
     }
 }
 
+/*
 void _thread::dispatch()
 {
+    // 1. Clean up the previous zombie thread if one exists.
+    // SAFEGUARD: Only delete if it's a dynamically allocated thread (stack != nullptr).
+    // The main thread is statically allocated in global memory and must NEVER be deleted.
+    if (zombie != nullptr)
+    {
+        if (zombie->stack != nullptr)
+        {
+            delete zombie;
+        }
+        zombie = nullptr;
+    }
+
+    // 2. Fallback to guarantee a valid running thread context
+    if (running == nullptr)
+    {
+        running = createMainThread();
+    }
+
+    _thread* old = _thread::running;
+
+    // 3. Save the current thread back to the Scheduler if it's still active
+    if (old->ready && !old->finished)
+    {
+        Scheduler::getInstance().addReady(old);
+    }
+    else if (old->finished)
+    {
+        zombie = old;
+    }
+
+    // 4. Fetch the next thread to execute
+    _thread* next = Scheduler::getInstance().getReady();
+
+    if (next == nullptr)
+    {
+        // OPTIMIZATION: If the scheduler is empty but the current thread is
+        // still runnable, just keep running it without an expensive context switch.
+        if (old->ready && !old->finished)
+        {
+            _thread::time = 0; // Reset time-slice counter
+            return;
+        }
+
+        // IDLE LOOP: If the scheduler is empty AND the current thread cannot run
+        // (e.g., it blocked on a semaphore, went to sleep, or exited), we must idle
+        // here until an asynchronous interrupt (timer/console) wakes a thread up.
+        while (next == nullptr)
+        {
+            // Unmask supervisor interrupts so the timer/hardware handlers can run
+            Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+
+            next = Scheduler::getInstance().getReady();
+
+            // Mask interrupts again immediately after checking to protect
+            // kernel state manipulation atomicity
+            Riscv::mc_sstatus(Riscv::SSTATUS_SIE);
+        }
+    }
+
+    // 5. Perform the context switch
+    running = next;
+    _thread::time = 0; // Reset the time-slice counter for the incoming thread
+    contextSwitch(&old->context, &running->context);
+}
+*/
+
+void _thread::dispatch()
+{
+    if (zombie != nullptr)
+    {
+        if (zombie->stack != nullptr)
+            delete zombie;
+        zombie = nullptr;
+    }
+
     if (running == nullptr)
         running = createMainThread();
 
     _thread* old = _thread::running;
     if (old->ready && !old->finished)
         Scheduler::getInstance().addReady(old);
+    else if (old->finished)
+        zombie = old;
 
     _thread* next = Scheduler::getInstance().getReady();
 
-    // DEBUG
-    /*printString("D old=");
-    printInteger((uint64)old, 16);
-    printString(" next=");
-    printInteger((uint64)next, 16);
-    if (next) {
-        printString(" sp=");
-        printInteger(next->context.sp, 16);
-        printString(" fin=");
-        printInteger(next->finished, 10);
-        printString(" rdy=");
-        printInteger(next->ready, 10);
-    }
-    printString("\n");*/
-
+    // FIX: Handle the case where the ready queue is empty
     if (next == nullptr)
-        return;
+    {
+        // If the current thread is still ready, it's the only thread in the system,
+        // so we can safely keep running it.
+        if (old->ready && !old->finished)
+        {
+            return;
+        }
+
+        // If the current thread is blocked/finished and no other thread is ready,
+        // we must idle and wait for a hardware timer interrupt to wake someone up.
+        while (next == nullptr)
+        {
+            asm volatile("csrs sstatus, 2"); // Enable Supervisor Interrupts (SIE)
+            asm volatile("wfi");             // Wait For Interrupt (low power mode)
+            asm volatile("csrc sstatus, 2"); // Disable Supervisor Interrupts (SIE)
+
+            next = Scheduler::getInstance().getReady();
+        }
+    }
 
     running = next;
+    //time = DEFAULT_TIME_SLICE;
+    time = 0;
     contextSwitch(&old->context, &running->context);
 }
 
@@ -132,6 +229,8 @@ void _thread::join()
 
 void _thread::threadWrapper()
 {
+    Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
+
     _thread::running->start_routine(_thread::running->arg);
     thread_exit();
 }

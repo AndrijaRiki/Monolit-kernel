@@ -5,7 +5,7 @@
 #include "../h/riscv.hpp"
 
 // Deklaracija asemblerske rutine iz trap.S
-extern "C" void internalTrap();
+extern "C" void traps();
 
 void Riscv::popSppSpie()
 {
@@ -29,5 +29,7 @@ void Riscv::popSppSpie()
 // korisnik ne mora ručno da poziva nikakvu init funkciju.
 void Riscv::initInternalTraps()
 {
-    Riscv::w_stvec((uint64)&internalTrap);
+    Riscv::w_stvec((uint64)&traps | 1);
+    Riscv::mc_sie(Riscv::SIE_SEIE);          // don't enable external/console interrupts until externalHandler actually acks the PLIC
+    Riscv::ms_sstatus(Riscv::SSTATUS_SIE);   // globally enable interrupts (timer needs this)
 }

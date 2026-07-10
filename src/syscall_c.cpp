@@ -48,6 +48,40 @@ int thread_getID()
     return SysCalls::invoke<int>(THREAD_GETID);
 }
 
+int sem_open(sem_t* handle, unsigned init)
+{
+    return SysCalls::invoke<int>(SEM_OPEN, handle, init);
+}
+
+int sem_close(sem_t handle)
+{
+    return SysCalls::invoke<int>(SEM_CLOSE, handle);
+}
+
+int sem_wait(sem_t id)
+{
+    return SysCalls::invoke<int>(SEM_WAIT, id);
+}
+
+int sem_signal(sem_t id)
+{
+    return SysCalls::invoke<int>(SEM_SIGNAL, id);
+}
+
+int sem_wait_n(sem_t id, unsigned n)
+{
+    return SysCalls::invoke<int>(SEM_WAIT_N, id, n);
+}
+
+int sem_signal_n(sem_t id, unsigned n)
+{
+    return SysCalls::invoke<int>(SEM_SIGNAL_N, id, n);
+}
+
+int time_sleep(time_t time)
+{
+    return SysCalls::invoke<int>(TIME_SLEEP, time);
+}
 /*#ifdef __cplusplus
 }
 #endif*/

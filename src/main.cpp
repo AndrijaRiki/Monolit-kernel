@@ -167,6 +167,7 @@ int main()
     __putc('\n');
 
     printLabel("All thread tests finished.\n");
+
     *((volatile int*)0x100000) = 0x5555;
     while (true) {}
     return 0;
