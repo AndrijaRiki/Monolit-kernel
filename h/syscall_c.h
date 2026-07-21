@@ -23,7 +23,9 @@ enum calls
     SEM_SIGNAL = 0x24,
     SEM_WAIT_N = 0x25,
     SEM_SIGNAL_N = 0x26,
-    TIME_SLEEP = 0x31
+    TIME_SLEEP = 0x31,
+    GETC = 0x41,
+    PUTC = 0x42
 };
 
 /*#ifdef __cplusplus
@@ -56,6 +58,10 @@ int sem_signal_n(sem_t id, unsigned n);
 
 typedef unsigned long time_t;
 int time_sleep(time_t);
+
+const int EOF = -1;
+char getc();
+void putc(char);
 /*#ifdef __cplusplus
 }
 #endif*/
