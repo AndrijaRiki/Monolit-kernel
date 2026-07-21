@@ -82,6 +82,17 @@ int time_sleep(time_t time)
 {
     return SysCalls::invoke<int>(TIME_SLEEP, time);
 }
+
+char getc()
+{
+    return SysCalls::invoke<char>(GETC);
+}
+
+void putc(char c)
+{
+    SysCalls::invoke<void>(PUTC, c);
+}
+
 /*#ifdef __cplusplus
 }
 #endif*/

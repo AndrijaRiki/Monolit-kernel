@@ -10,6 +10,7 @@
 #include "../h/syscall_c.h"
 #include "../h/Thread.hpp"
 #include "../h/Semaphore.hpp"
+#include "../lib/console.h"
 
 constexpr uint64 ECALL_FROM_U_MODE = 0x08;
 constexpr uint64 ECALL_FROM_S_MODE = 0x09;
@@ -202,6 +203,18 @@ extern "C" void internalTrapHandler(uint64* regs)
             regs[A0] = 0;
             break;
         }
+    case GETC:
+        {
+            char c = __getc();
+            Riscv::w_user_reg(A0, c);
+            break;
+        }
+    case PUTC:
+        {
+            char c = Riscv::r_user_reg<char>(A1);
+            __putc(c);
+            break;
+        }
     default:
         regs[A0] = 0;
     }
@@ -235,5 +248,5 @@ extern "C" void timerHandler()
 
 extern "C" void externalHandler()
 {
-
+    console_handler();
 }
