@@ -2,7 +2,6 @@
 #define PROJEKAT_SYSCALLS_HPP
 
 #include "../lib/hw.h"
-#include "../h/riscv.hpp"
 
 template <typename T>
 struct SysCallImpl {
