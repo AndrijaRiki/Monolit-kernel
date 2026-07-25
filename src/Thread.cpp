@@ -6,7 +6,6 @@
 #include "../h/riscv.hpp"
 #include "../h/MemoryAllocator.hpp"
 #include "../h/Scheduler.hpp"
-#include "../h/printing.hpp"
 #include "../h/syscall_c.h"
 
 _thread::_thread()
