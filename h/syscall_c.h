@@ -7,7 +7,6 @@
 
 #include "../lib/hw.h"
 
-//calls and their codes
 enum calls
 {
     MEM_ALLOC=0x01,
@@ -27,10 +26,6 @@ enum calls
     GETC = 0x41,
     PUTC = 0x42
 };
-
-/*#ifdef __cplusplus
-extern "C" {
-#endif*/
 
 void* mem_alloc(size_t size);
 int mem_free(void* ptr);
@@ -62,7 +57,6 @@ int time_sleep(time_t);
 const int EOF = -1;
 char getc();
 void putc(char);
-/*#ifdef __cplusplus
-}
-#endif*/
+
+
 #endif //PROJEKAT_SYSCALL_C_H

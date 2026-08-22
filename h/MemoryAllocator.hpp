@@ -29,12 +29,6 @@ private:
 
         MemDescr* head;
 
-        // The constructor aligns HEAP_START_ADDR/HEAP_END_ADDR before using
-        // them to build the initial free block. free()'s bounds check must
-        // compare against these SAME aligned values, not the raw
-        // HEAP_START_ADDR/HEAP_END_ADDR -- otherwise any block carved out of
-        // the gap between the raw and aligned start address (e.g. the very
-        // first block descriptor) will incorrectly fail the bounds check.
         size_t heapStart;
         size_t heapEnd;
 
@@ -49,9 +43,6 @@ private:
 
         static constexpr size_t align_down(size_t size, size_t align)
         {
-                // FIX: was "size * align / align" which is a no-op (always
-                // returns size unchanged). Correct rounding-down is
-                // size / align * align.
                 return size / align * align;
         }
 

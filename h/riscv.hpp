@@ -103,11 +103,6 @@ public:
     template <typename T>
     static void w_user_reg(uint64 reg, T val);
 
-    // Installs our own trap vector (supervisorTrap, from trap.S) into stvec.
-    // Must be called AFTER the platform's own boot/trapinithart() runs, since
-    // that code unconditionally overwrites stvec with its own kernelvec right
-    // before main() is entered. Called lazily/automatically from SysCalls::invoke
-    // on first use, so user code never has to call this directly.
     static void initInternalTraps();
 };
 

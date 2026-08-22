@@ -20,8 +20,8 @@ public:
     void updateSleeping();
 private:
     Scheduler() {};
-    thread_t ready = nullptr; //head of list of ready threads
-    thread_t sleeping = nullptr; //head of list of threads waiting to be called/woken up
+    thread_t ready = nullptr;
+    thread_t sleeping = nullptr;
 };
 
 #endif //PROJEKAT_SCHEDULER_HPP
