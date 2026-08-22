@@ -77,27 +77,24 @@ void _thread::dispatch()
 
     _thread* old = _thread::running;
 
-    // Put old thread back into ready queue if it is active and not finished/blocked
+    
     if (old->ready && !old->finished)
         Scheduler::getInstance().addReady(old);
 
     _thread* next = Scheduler::getInstance().getReady();
 
-    // If ready queue is empty
     if (next == nullptr)
     {
-        // If current thread can still execute, keep running it
         if (old->ready && !old->finished)
         {
             return;
         }
 
-        // Idle wait for hardware interrupts
         while (next == nullptr)
         {
-            asm volatile("csrs sstatus, 2"); // Enable Supervisor Interrupts (SIE)
-            asm volatile("wfi");             // Wait For Interrupt
-            asm volatile("csrc sstatus, 2"); // Disable Supervisor Interrupts (SIE)
+            asm volatile("csrs sstatus, 2");
+            asm volatile("wfi");
+            asm volatile("csrc sstatus, 2");
 
             next = Scheduler::getInstance().getReady();
         }
@@ -115,7 +112,6 @@ void _thread::join()
         return;
     }
 
-    // Mark running thread as blocked and insert it into this thread's waiting queue
     running->ready = false;
     running->next = waiting;
     waiting = running;
@@ -123,7 +119,6 @@ void _thread::join()
 
 void _thread::threadWrapper()
 {
-    // Enable Supervisor Interrupts
     Riscv::ms_sstatus(Riscv::SSTATUS_SIE);
 
     if (_thread::running->start_routine != nullptr)
@@ -131,6 +126,5 @@ void _thread::threadWrapper()
         _thread::running->start_routine(_thread::running->arg);
     }
 
-    // Trigger system call to exit clean via traps.cpp
     thread_exit();
 }

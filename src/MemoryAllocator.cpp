@@ -26,7 +26,7 @@ void* MemoryAllocator::alloc(size_t size)
 {
     if (size > ((uint64)SIZE_MAX / MEM_BLOCK_SIZE - 1))
         return nullptr;
-    // convert to bytes, and add one more block for the descriptor
+    // one more block for the descriptor
     size = (size + 1) * MEM_BLOCK_SIZE;
 
     MemDescr* prev = nullptr;
@@ -58,7 +58,6 @@ void* MemoryAllocator::alloc(size_t size)
 
             curr->next = nullptr;
 
-            // return the start of the block that's available to the user
             return (void*)((size_t)curr + MEM_BLOCK_SIZE);
         }
 
@@ -76,16 +75,9 @@ int MemoryAllocator::free(void* ptr)
 
     ptr = (void*)((size_t)ptr - MEM_BLOCK_SIZE); //-1 block = descriptor
 
-    // FIX: compare against the ALIGNED bounds (same ones used to build the
-    // initial free list in the constructor), not the raw HEAP_START_ADDR.
-    // The first block's descriptor can legitimately sit in the gap between
-    // the raw, unaligned HEAP_START_ADDR and the aligned heapStart -- using
-    // the raw value here incorrectly rejected valid frees from that block.
     if ((size_t)ptr < heapStart || (size_t)ptr >= heapEnd)
         return -1;
 
-    // Find the correct insertion point: prev is the last free block
-    // before ptr, curr is the first free block after (or equal to) ptr.
     MemDescr* prev = nullptr;
     MemDescr* curr = head;
 
@@ -95,25 +87,17 @@ int MemoryAllocator::free(void* ptr)
         curr = curr->next;
     }
 
-    // If curr == ptr, this block is already on the free list -> double free.
     if (curr == ptr)
         return -1;
 
     MemDescr* desc = (MemDescr*)ptr;
     desc->next = curr;
 
-    // FIX: original code did "head = prev->next" here, which overwrote the
-    // list head every time prev wasn't null, corrupting the free list.
-    // We need to link desc INTO the list at the right spot instead.
     if (prev == nullptr)
         head = desc;
     else
         prev->next = desc;
 
-    // Merge desc forward into curr first (desc's address is still correct,
-    // only curr might get absorbed into it), then merge prev forward into
-    // desc/curr's combined block. Order matters: merge the later pair first
-    // so the earlier merge sees the final, fully-coalesced size.
     mergeBlocks(desc, curr);
     mergeBlocks(prev, desc);
 

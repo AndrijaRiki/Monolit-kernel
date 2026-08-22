@@ -5,9 +5,6 @@
 #include "../lib/hw.h"
 #include "../h/SysCalls.hpp"
 
-/*#ifdef __cplusplus
-extern "C" {
-#endif*/
 
 void *mem_alloc(size_t size)
 {
@@ -92,7 +89,3 @@ void putc(char c)
 {
     SysCalls::invoke<void>(PUTC, c);
 }
-
-/*#ifdef __cplusplus
-}
-#endif*/

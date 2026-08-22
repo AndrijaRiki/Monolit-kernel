@@ -36,8 +36,6 @@ void Scheduler::addReady(thread_t thread)
 
 void Scheduler::addSleeping(thread_t thread, time_t time)
 {
-    // Adds the thread to the sleeping list, sorted by time
-
     thread_t prev = nullptr;
     thread_t curr = sleeping;
     while(curr != nullptr && curr->sleepTime <= time)

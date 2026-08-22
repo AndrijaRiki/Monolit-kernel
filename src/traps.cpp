@@ -3,7 +3,7 @@
 //
 
 #include "../h/MemoryAllocator.hpp"
-#include "../h/printing.hpp"
+#include "../h/moj_printing.hpp"
 #include "../lib/hw.h"
 #include "../h/riscv.hpp"
 #include "../h/Scheduler.hpp"
@@ -102,14 +102,13 @@ extern "C" void internalTrapHandler(uint64* regs)
             _thread::dispatch();
             break;
         }
-    // ADDED: Missing system call handlers below
     case THREAD_JOIN:
         {
             thread_t handle = (thread_t)regs[A1];
             if (handle != nullptr && !handle->finished)
             {
-                handle->join();       // Changes status and queues the calling thread
-                _thread::dispatch();  // Switch out to another ready thread
+                handle->join();
+                _thread::dispatch();
             }
             regs[A0] = 0;
             break;
