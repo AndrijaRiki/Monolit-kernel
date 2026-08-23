@@ -8,7 +8,7 @@
 
 void *mem_alloc(size_t size)
 {
-    size_t blocks  = (size + MEM_BLOCK_SIZE - 1) / MEM_BLOCK_SIZE;
+    size_t blocks = (size + MEM_BLOCK_SIZE - 1) / MEM_BLOCK_SIZE;
     return SysCalls::invoke<void*>(MEM_ALLOC, blocks);
 }
 
@@ -25,19 +25,27 @@ int thread_exit()
 int thread_create(thread_t* handle, void(*start_routine)(void*), void* arg)
 {
     void* stack = mem_alloc(DEFAULT_STACK_SIZE);
+
     if (!stack)
-        return -1; //allocation error
-    return SysCalls::invoke<int>(THREAD_CREATE, handle, start_routine, arg, stack);
+        return -1;
+
+    return SysCalls::invoke<int>(
+            THREAD_CREATE,
+            handle,
+            start_routine,
+            arg,
+            stack
+    );
 }
 
 void thread_dispatch()
 {
-    SysCalls::invoke(THREAD_DISPATCH);
+    SysCalls::invokeVoid(THREAD_DISPATCH);
 }
 
 void thread_join(thread_t handle)
 {
-    SysCalls::invoke(THREAD_JOIN, handle);
+    SysCalls::invokeVoid(THREAD_JOIN, handle);
 }
 
 int thread_getID()
@@ -87,5 +95,5 @@ char getc()
 
 void putc(char c)
 {
-    SysCalls::invoke<void>(PUTC, c);
+    SysCalls::invokeVoid(PUTC, c);
 }

@@ -12,8 +12,8 @@ MemoryAllocator& MemoryAllocator::getInstance()
 
 MemoryAllocator::MemoryAllocator()
 {
-    heapStart = align_down((size_t)HEAP_START_ADDR, MEM_BLOCK_SIZE);
-    heapEnd = align_up((size_t)HEAP_END_ADDR, MEM_BLOCK_SIZE);
+    heapStart = align_up((size_t)HEAP_START_ADDR, MEM_BLOCK_SIZE);
+    heapEnd = align_down((size_t)HEAP_END_ADDR, MEM_BLOCK_SIZE);
 
     MemDescr* mem = (MemDescr*)heapStart;
     mem->size = heapEnd - heapStart;
