@@ -19,10 +19,6 @@ static void producerKeyboard(void *arg) {
     int key;
     int i = 0;
     while ((key = getc()) != 0x1b) {
-        if (key == 0x1b)
-        {
-            printString("Pritisnut je esc");
-        }
         data->buffer->put(key);
         i++;
 
