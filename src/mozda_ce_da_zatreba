@@ -1,0 +1,100 @@
+#ifndef PROJEKAT_SYSCALL_HPP
+#define PROJEKAT_SYSCALL_HPP
+
+#include "../lib/hw.h"
+
+class SysCall
+{
+public:
+    // 0 argumenata
+    template <typename RetType>
+    static inline RetType invoke(uint64_t id)
+    {
+        register uint64_t r_id asm("a0") = id;
+        register RetType ret asm("a0");
+
+        asm volatile (
+            "ecall"
+            : "=r" (ret)
+            : "r" (r_id)
+            : "memory"
+        );
+        return ret;
+    }
+
+    // 1 argument (npr. tvoj free_mem, mem_alloc)
+    template <typename RetType, typename Arg1>
+    static inline RetType invoke(uint64_t id, Arg1 arg1)
+    {
+        register uint64_t r_id   asm("a0") = id;
+        register uint64_t r_arg1 asm("a1") = (uint64_t)arg1;
+        register RetType  ret    asm("a0");
+
+        asm volatile (
+            "ecall"
+            : "=r" (ret)
+            : "r" (r_id), "r" (r_arg1)
+            : "memory"
+        );
+        return ret;
+    }
+
+    // 2 argumenta (korisno za kasnije, npr. rad sa semaforima)
+    template <typename RetType, typename Arg1, typename Arg2>
+    static inline RetType invoke(uint64_t id, Arg1 arg1, Arg2 arg2)
+    {
+        register uint64_t r_id   asm("a0") = id;
+        register uint64_t r_arg1 asm("a1") = (uint64_t)arg1;
+        register uint64_t r_arg2 asm("a2") = (uint64_t)arg2;
+        register RetType  ret    asm("a0");
+
+        asm volatile (
+            "ecall"
+            : "=r" (ret)
+            : "r" (r_id), "r" (r_arg1), "r" (r_arg2)
+            : "memory"
+        );
+        return ret;
+    }
+
+    // 3 argumenta
+    template <typename RetType, typename Arg1, typename Arg2, typename Arg3>
+    static inline RetType invoke(uint64_t id, Arg1 arg1, Arg2 arg2, Arg3 arg3)
+    {
+        register uint64_t r_id   asm("a0") = id;
+        register uint64_t r_arg1 asm("a1") = (uint64_t)arg1;
+        register uint64_t r_arg2 asm("a2") = (uint64_t)arg2;
+        register uint64_t r_arg3 asm("a3") = (uint64_t)arg3;
+        register RetType  ret    asm("a0");
+
+        asm volatile (
+            "ecall"
+            : "=r" (ret)
+            : "r" (r_id), "r" (r_arg1), "r" (r_arg2), "r" (r_arg3)
+            : "memory"
+        );
+        return ret;
+    }
+
+    // 4 argumenta (Maksimum koji ti realno treba za kreiranje niti/procesa)
+    template <typename RetType, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+    static inline RetType invoke(uint64_t id, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4)
+    {
+        register uint64_t r_id   asm("a0") = id;
+        register uint64_t r_arg1 asm("a1") = (uint64_t)arg1;
+        register uint64_t r_arg2 asm("a2") = (uint64_t)arg2;
+        register uint64_t r_arg3 asm("a3") = (uint64_t)arg3;
+        register uint64_t r_arg4 asm("a4") = (uint64_t)arg4;
+        register RetType  ret    asm("a0");
+
+        asm volatile (
+            "ecall"
+            : "=r" (ret)
+            : "r" (r_id), "r" (r_arg1), "r" (r_arg2), "r" (r_arg3), "r" (r_arg4)
+            : "memory"
+        );
+        return ret;
+    }
+};
+
+#endif // PROJEKAT_SYSCALL_HPP
